@@ -55,27 +55,32 @@ int main(void)
         config_map[key_value[0]] = key_value[1];
     }
 
-    // リクエスト
+    // curl初期化
     curl = curl_easy_init();
-    post(config_map.at("OAUTH_ACCESS_TOKEN"), "rice");
-    curl_easy_cleanup(curl);
-    std::vector<cv::Rect> faces;
 
     // カメラキャプチャと顔認識
     cv::Mat frame;
     cv::VideoCapture cap(0);
+    std::vector<cv::Rect> faces;
     cv::CascadeClassifier cascade;
     cascade.load("./haarcascade_frontalface_alt.xml");
     while (1) {
         cap.read(frame);
         cascade.detectMultiScale(frame, faces, 1.1, 3, 0, cv::Size(20, 20));
-        for (int i = 0; i < faces.size(); i++) {
-            cv::rectangle(frame, cv::Point(faces[i].x, faces[i].y), cv::Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), cv::Scalar(0, 0, 255), 3, 16);
+        // 顔が認識されればステータスを仕事中にする
+        if (faces.size() > 0) {
+            post(config_map.at("OAUTH_ACCESS_TOKEN"), "male-technologist");
+            cv::rectangle(frame, cv::Point(faces[0].x, faces[0].y), cv::Point(faces[0].x + faces[0].width, faces[0].y + faces[0].height), cv::Scalar(0, 0, 255), 3, 16);
+        } else { // 認識されなければステータスを飯にする
+            post(config_map.at("OAUTH_ACCESS_TOKEN"), "rice");
         }
 
         imshow("window", frame);
         cv::waitKey(1);
     }
+
+    // curlクリア
+    curl_easy_cleanup(curl);
 
     return 0;
 }
