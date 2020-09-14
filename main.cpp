@@ -63,18 +63,32 @@ int main(void)
     cv::VideoCapture cap(0);
     std::vector<cv::Rect> faces;
     cv::CascadeClassifier cascade;
+    bool isWorkingPre = false;
+    bool isWorking = false;
     cascade.load("./haarcascade_frontalface_alt.xml");
     while (1) {
+        // 顔認識
+        isWorkingPre = isWorking;
         cap.read(frame);
         cascade.detectMultiScale(frame, faces, 1.1, 3, 0, cv::Size(20, 20));
-        // 顔が認識されればステータスを仕事中にする
         if (faces.size() > 0) {
-            post(config_map.at("OAUTH_ACCESS_TOKEN"), "male-technologist");
             cv::rectangle(frame, cv::Point(faces[0].x, faces[0].y), cv::Point(faces[0].x + faces[0].width, faces[0].y + faces[0].height), cv::Scalar(0, 0, 255), 3, 16);
-        } else { // 認識されなければステータスを飯にする
-            post(config_map.at("OAUTH_ACCESS_TOKEN"), "rice");
+            isWorking = true;
+        } else {
+            isWorking = false;
         }
 
+        // 認識状態に変更があればリクエストを送信
+        if (isWorkingPre ^ isWorking) {
+            if (isWorking) {
+                post(config_map.at("OAUTH_ACCESS_TOKEN"), "male-technologist");
+            } else {
+                post(config_map.at("OAUTH_ACCESS_TOKEN"), "rice");
+            }
+        }
+
+        // キャプチャ画像をリサイズして表示
+        resize(frame, frame, cv::Size(), 0.25, 0.25);
         imshow("window", frame);
         cv::waitKey(1);
     }
