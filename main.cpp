@@ -90,7 +90,11 @@ int main(void)
         // キャプチャ画像をリサイズして表示
         resize(frame, frame, cv::Size(), 0.25, 0.25);
         imshow("window", frame);
-        cv::waitKey(1);
+        
+        // qキーの入力を1秒待つ (1秒毎にループが回る)
+        if (cv::waitKey(1000) == 113) {
+            break;
+        };
     }
 
     // curlクリア
